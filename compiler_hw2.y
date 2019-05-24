@@ -46,6 +46,7 @@ void insert_symbol(node*);
 void dump_symbol(int);
 void print_symbol(int,node*);
 void print_error(char*, int);
+void dump_symbol2(int);
 node* remove_node(node*);
 %}
 
@@ -78,7 +79,7 @@ node* remove_node(node*);
 
 
 /* Nonterminal with return, which need to sepcify type */
-%type <string> variable_declaration function_definition parameter_list parameter_declarator type_specifier
+%type <string> variable_declaration function_declaration function_definition parameter_list parameter_declarator type_specifier
 
 /* Yacc will start at this nonterminal */
 %start program
@@ -93,6 +94,7 @@ program
 
 external_declaration
     : variable_declaration
+    | function_declaration ';' {Scope++;dump_symbol2(Scope);}
     | function_definition compound_statement 
 ;
 
@@ -115,9 +117,14 @@ variable_declaration
     }
 ;
 
+function_declaration
+    : type_specifier ID '(' ')'                         { create_symbol($2,"function",$1,""); }
+    | type_specifier ID '(' parameter_list ')' 	        { create_symbol($2,"function",$1,$4); }
+;
+
 function_definition
-    : type_specifier ID '(' ')'                 {create_symbol($2,"function",$1,"");}
-    | type_specifier ID '(' parameter_list ')'  {create_symbol($2,"function",$1,$4);}
+    : type_specifier ID '(' ')'                 {Scope--;create_symbol($2,"function",$1,"");Scope++;}
+    | type_specifier ID '(' parameter_list ')'  {Scope--;create_symbol($2,"function",$1,$4);Scope++;}
 ;
 
 type_specifier
@@ -181,6 +188,7 @@ expression
 	|expression ',' assignment_expression
 ;
 
+
 parameter_list
     : parameter_declarator { $$ = $1; }
     | parameter_list ',' parameter_declarator { sprintf($$ ,"%s, %s",$1,$3);}
@@ -208,8 +216,12 @@ assignment_operator
 ;
 
 parameter_declarator
-    :type_specifier  ID {Scope++; create_symbol($2,"parameter",$1,"");Scope--;}
+    :type_specifier  ID {Scope++; 
+                if(!lookup_symbol($2,Scope))
+                    create_symbol($2,"parameter",$1,"");
+                Scope--;}
 ;
+
 conditional_expression
 	:logical_or_expression
 	|logical_or_expression '?' expression ':' conditional_expression
@@ -350,7 +362,6 @@ void print_error(char*s , int lineno){
 
 node* create_symbol(char* _n,char* _e, char* _d, char* _p) {
     node* new_node;
-    //printf("%s %s %s %d %s\n",_n, _e,_d,Scope,_p);
     new_node = malloc(sizeof(node));
     new_node->s = malloc(sizeof(symbol));
     new_node->s->name = strdup(_n);
@@ -399,6 +410,19 @@ int lookup_symbol(char*  n,int s) {
         now = now->next;
     }
     return 0;
+}
+void dump_symbol2(int scope){
+    node* now = list_head;
+    int i = 0;
+    now = now->next;
+    while(now != NULL){
+        if(now ->s-> scope == scope){
+        now = remove_symbol(now);
+        i++;
+        }else{
+        now = now->next;
+        }
+    }
 }
 void dump_symbol(int scope) {
     node* now = list_head;

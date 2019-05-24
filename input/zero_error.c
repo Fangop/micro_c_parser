@@ -3,6 +3,7 @@
  */
 
 float c = 1.5;
+int add(int a, int b);
 
 bool loop(int n, int m) {
     while (n > m) {

@@ -16,7 +16,6 @@ struct ERROR_SET{
 typedef struct ERROR_SET error;
 
 extern int Scope;
-extern int currentScope;
 extern error err;
 extern void dump_symbol(int scope);
 extern void yyerror(char *s);
@@ -152,7 +151,12 @@ id			{letter}+({letter}|{digit})*
 }
 [ \t]		{ CONCAT; } /* Ignore */
 [^ \t\n] 	{ CONCAT; } /* Ignore other charactor sets */
-<<eof>>     {dump_symbol(0); printf("\nTotal lines: %d \n", yylineno); return 0; }
+<<eof>>     {while(Scope >= 0){
+                dump_symbol(Scope);
+                Scope --;
+                }   
+             printf("\nTotal lines: %d \n", yylineno); return 0; }
+             
 
 %%
 
