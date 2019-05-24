@@ -138,7 +138,6 @@ id			{letter}+({letter}|{digit})*
         printf("%d: %s\n", yylineno, buf);
         if(err.flag == 1){
             yyerror(err.msg);
-            err.flag = 0;
         }
         while(dumpFlag > 0){
             dump_symbol(Scope);

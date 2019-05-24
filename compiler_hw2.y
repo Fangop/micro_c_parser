@@ -45,6 +45,7 @@ node* create_symbol(char*, char*,char* ,char*);
 void insert_symbol(node*);
 void dump_symbol(int);
 void print_symbol(int,node*);
+void print_error(char*, int);
 node* remove_node(node*);
 %}
 
@@ -321,11 +322,30 @@ int main(int argc, char** argv)
 
 void yyerror(char *s)
 {
+    if(!strcmp(s, "syntax error")){
+        if(strlen(buf) != 0){
+            printf("%d: %s\n", yylineno + 1, buf);
+        }
+        else{
+            printf("%d:\n", yylineno + 1);
+        }
+        if(err.flag > 0){
+                print_error(err.msg,yylineno+1);
+                err.flag = 0;
+            }
+            print_error(s,yylineno+1);
+    }
+    else{
+        print_error(s,yylineno);
+        err.flag = 0;
+    }
+    return;
+}
+void print_error(char*s , int lineno){
     printf("\n|-----------------------------------------------|\n");
-    printf("| Error found in line %d: %s\n", yylineno, buf);
+    printf("| Error found in line %d: %s\n", lineno, buf);
     printf("| %s", s);
     printf("\n|-----------------------------------------------|\n\n");
-return;
 }
 
 node* create_symbol(char* _n,char* _e, char* _d, char* _p) {
@@ -407,5 +427,5 @@ void dump_symbol(int scope) {
         printf("\n");
 }
 void print_symbol(int i,node* now){
-    printf("%-10d%-10s%-12s%-10s%-10d%-10s\n",i,now->s->name,now->s->entryType,now->s->dataType,now->s->scope,now->s->parameter);
+    printf("%-10d%-10s%-12s%-10s%-10d%s\n",i,now->s->name,now->s->entryType,now->s->dataType,now->s->scope,now->s->parameter);
 }
